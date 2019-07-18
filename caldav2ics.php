@@ -8,7 +8,7 @@
 	$calendar_url = "https://example.com/mycaldavurl";	// your caldav calendar URL
 	$calendar_user = "user";	// your username
 	$calendar_password = "password";	// your password
-	$ICalFile = pathinfo(__FILE__, PATHINFO_DIRNAME)."/../../data/calendars/calendar.ics";	// ical file name
+	$ICalFile = pathinfo(__FILE__, PATHINFO_DIRNAME)."/calendar.ics";	// ical file name
 	$fmdelay = 60;	// seconds
 	// end Config
 	
