@@ -5,10 +5,10 @@
 	// Config goes here:
 	$LogEnabled = false;
 	$LogFile = pathinfo(__FILE__, PATHINFO_DIRNAME)."/logfile.txt";
-	$calendar_url = "https://example.com/mycaldavurl";	// your caldav calendar URL
+	$calendar_url = "https://example.com/yourcaldavurl";	// your caldav calendar URL
 	$calendar_user = "user";	// your username
 	$calendar_password = "password";	// your password
-	$ICalFile = pathinfo(__FILE__, PATHINFO_DIRNAME)."/calendar.ics";	// ical file name
+	$ICalFile = pathinfo(__FILE__, PATHINFO_DIRNAME)."calendar.ics";	// ical file name
 	$fmdelay = 60;	// seconds
 	// end Config
 	
@@ -120,17 +120,8 @@
 		}
 
 		// Get the useful part of the response
-		$xml = simplexml_load_string($response);
-		$data = $xml->xpath('//cal:calendar-data');
-
-		$data_r = print_r($data, true);
-				
-		// Debugging purpose
-		if ($LogEnabled) { 
-			//	echo htmlspecialchars($data[0]); 
-			//	fwrite($loghandle, htmlspecialchars($data[0]));
-			fwrite($loghandle, ($data_r));
-		}
+		/*	skip any xml conversion/parsing
+		*/
 
 		// Parse events
 		$calendar_events = array();
@@ -143,51 +134,54 @@
 		fwrite($handle, 'PRODID:-//hoernerfranzracing/caldav2ics.php'."\r\n");
 		// find and write TIMEZONE data, new feature, 27.12.19
 		$skip = true;
-		$lines = explode("\n", $data_r);
+		$wroteTZ = false;
+		$lines = explode("\n", $response);
 		foreach ($lines as $line)   {
-			if (startswith($line,'BEGIN:VTIMEZONE'))	{
-				$skip = false;
-			}
-			if ( !$skip )	{
-				fwrite($handle, $line."\r\n"); // write everything between 'BEGIN:VTIMEZONE' and 'END:VTIMEZONE'
-				// echo $line."\n";
-			}
-			if (startswith($line,'END:VTIMEZONE'))	{
-				$skip = true;
+			$line = trim($line);
+			if ($wroteTZ == false)	{
+				if (startswith($line,'BEGIN:VTIMEZONE'))	{
+					$skip = false;
+				}
+				if ( !$skip )	{
+					fwrite($handle, $line."\r\n"); // write everything between 'BEGIN:VTIMEZONE' and 'END:VTIMEZONE'
+					// echo $line."\n";
+				}
+				if (startswith($line,'END:VTIMEZONE'))	{
+					$skip = true;
+					$wroteTZ = true;    // only write VTIMEZONE entry once
+				}
 			}
 		}
 		// parse $data as $vcalendars, do NOT write VCALENDAR header for each one, just the event data
-		foreach ($data as $vcalendars) {
-			$lines = explode("\n", $vcalendars);
-			$skip = false;
-			foreach ($lines as $line) {
-				if (startswith($line,'BEGIN:VCALENDAR'))	{
-					$skip = true;
-				}
-				if (startswith($line,'PRODID:'))	{
-					$skip = true;
-				}
-				if (strstr($line,'VERSION:'))	{
-					$skip = true;	// VERSION can appear in different places
-				}
-				if (startswith($line,'CALSCALE:'))	{
-					$skip = true;
-				}
-				if (startswith($line,'BEGIN:VEVENT'))	{
-					$skip = false;
-					fwrite($handle, "\r\n");	// improves readability, but triggers warning in validator :)
-				}
-				if (startswith($line,'END:VCALENDAR'))	{
-					$skip = true;
-				}
-				if ($skip == false)	{
-					fwrite($handle, $line."\r\n");
-				}
+		// $skip = true;
+		foreach ($lines as $line) {
+			$line = trim($line);
+			if (startswith($line,'BEGIN:VCALENDAR'))	{
+				$skip = true;
+			}
+			if (startswith($line,'PRODID:'))	{
+				$skip = true;
+			}
+			if (strstr($line,'VERSION:'))	{
+				$skip = true;	// VERSION can appear in different places
+			}
+			if (startswith($line,'CALSCALE:'))	{
+				$skip = true;
+			}
+			if (startswith($line,'BEGIN:VEVENT'))	{
+				$skip = false;
+				//fwrite($handle, "\r\n");	// improves readability, but triggers warning in validator :)
+			}
+			if (startswith($line,'END:VCALENDAR'))	{
+				$skip = true;
+			}
+			if ($skip == false)	{
+				fwrite($handle, $line."\r\n");
 			}
 		}
 		fwrite($handle, 'END:VCALENDAR'."\r\n");
 		fclose($handle);
-		if ($LogEnabled) { 
+        if ($LogEnabled) { 
 			fclose($loghandle);
 		}
 	}
