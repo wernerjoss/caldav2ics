@@ -138,7 +138,7 @@
 		$lines = explode("\n", $response);
 		foreach ($lines as $line)   {
 			$line = trim($line);
-			if ($wroteTZ == false)	{
+			if ( !$wroteTZ )	{
 				if (startswith($line,'BEGIN:VTIMEZONE'))	{
 					$skip = false;
 				}
@@ -152,11 +152,10 @@
 				}
 			}
 		}
-		// parse $data as $vcalendars, do NOT write VCALENDAR header for each one, just the event data
-		// $skip = true;
+		// parse $response, do NOT write VCALENDAR header for each one, just the event data
 		foreach ($lines as $line) {
 			$line = trim($line);
-			if (startswith($line,'BEGIN:VCALENDAR'))	{
+			if (strstr($line,'BEGIN:VCALENDAR'))	{	// first occurrence might not be at line start
 				$skip = true;
 			}
 			if (startswith($line,'PRODID:'))	{
@@ -175,7 +174,7 @@
 			if (startswith($line,'END:VCALENDAR'))	{
 				$skip = true;
 			}
-			if ($skip == false)	{
+			if ( !$skip )	{
 				fwrite($handle, $line."\r\n");
 			}
 		}
@@ -195,5 +194,4 @@
 				return false;
 		}
 	}
-	
 ?>
