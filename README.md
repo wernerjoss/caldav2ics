@@ -9,3 +9,4 @@ As a reference, see [wp-caldav2ics](https://wordpress.org/plugins/wp-caldav2ics/
 As I switched from Wordpress to Grav, I needed the same functionality in the new CMS.
 This script is currently my simple solution for the task, running via cron job on my server.
 Maybe I'll make a Grav Plugin out of this, in the future.
+
