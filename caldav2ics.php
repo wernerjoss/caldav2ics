@@ -1,3 +1,4 @@
+#!/usr/bin/env  php
 <?php
 	// Standalone CalDav2ics (e.g. for cron job...)
 	// stores Logfile in same Directory as script, Calendar File in user/data/calendars
