@@ -11,3 +11,6 @@ This script is currently my simple solution for the task, running via Grav Sched
 
 The main file is caldav2ics.php, the other 2 are helper scripts: debug.php for offline Analysis of the log file, caldavexplore.sh is used to find out the correct Calendar URL's (which does not always seem to be that easy...)
 
+## TODO:
+* add ability to fetch multiple remote Calendars in one run
+
