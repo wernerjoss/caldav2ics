@@ -11,6 +11,10 @@ This script is currently my simple solution for the task, running via Grav Sched
 
 The main file is caldav2ics.php, the other 2 are helper scripts: debug.php for offline Analysis of the log file, caldavexplore.sh is used to find out the correct Calendar URL's (which does not always seem to be that easy...)
 
+## Dependencies
+- php-curl
+- php-json
+
 ## Usage
 As of 02/2021, caldav2ics.php reads the Configuration (URL's, username, password..) from a jsonfile: caldav2ics.json.  
 This makes it easy to fetch/process multiple remote Calendars in ONE run.
