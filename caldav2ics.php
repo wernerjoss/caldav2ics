@@ -2,8 +2,8 @@
 <?php
 	// Standalone CalDav2ics (e.g. for cron job...)
 	// stores Logfile and Calendar File in same Directory as script
-	// can fetch/process multiple calendars at once, just put these as a json encoded array in $ConfigFile, a sample File is included here for convenience
-	// as stated below, $ConfigFile is a json file, but should be renamed for security reasons, as it contains sensible login data (userames/passwords)
+	// can fetch/process multiple calendars at once, just put these as a json encoded array in $CalendarsFile, a sample File is included here for convenience
+	// as stated below, $CalendarsFile is a json file, but renamed for security reasons, as it contains sensible login data (userames/passwords)
 	// proposal is caldav2ics.yaml, as yaml files are usually not served by apache, even if their name/address ist known. but e.g. config.php will also do.
 	// the reason I did not use yaml format here is, that most hosting environments do not include php-yaml, but php-json.
 	
@@ -11,11 +11,11 @@
 	$verbose = true;
 	$LogEnabled = false;
 	$LogFile = pathinfo(__FILE__, PATHINFO_DIRNAME)."/logfile.txt";
-	$ConfigFile = pathinfo(__FILE__, PATHINFO_DIRNAME)."/caldav2ics.json";	// config file name, json format, consider renaming this to caldav2ics.yaml or config.php for security reasons !
+	$CalendarsFile = pathinfo(__FILE__, PATHINFO_DIRNAME)."/caldav2ics.yaml";	// config file name, json format with fake extension .yaml for security reasons !
 	// end Config
 	
-	if ( file_exists($ConfigFile) ) {
-		$jsondata = file_get_contents($ConfigFile);
+	if ( file_exists($CalendarsFile) ) {
+		$jsondata = file_get_contents($CalendarsFile);
 		$Config = (array) json_decode($jsondata);
 	}
 	
