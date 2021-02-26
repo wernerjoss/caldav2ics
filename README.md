@@ -13,7 +13,6 @@ The main file is caldav2ics.php, the other 2 are helper scripts: debug.php for o
 
 ## Dependencies
 - php-curl
-- php-json
 
 ## Usage
 This is the Version before 02/2021, with all configuration and functionality in one file: caldav2ics.php.  
