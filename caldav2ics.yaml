@@ -1,4 +1,0 @@
-{"calendars":[
-{"0":[{"name":"sample_Calendar"},{"url":"https:\/\/example.com\/remote.php\/dav\/calendars\/user\/public"},{"user":"myself"},{"password":"mypassword"}]},
-{"1":[{"name":"another_Calendar"},{"url":"https:\/\/example.net\/remote.php\/dav\/calendars\/user1\/public"},{"user":"Imyself"},{"password":"newpassword"}]}
-]}
