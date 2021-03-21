@@ -1,4 +1,4 @@
-#!/usr/bin/env  php
+#!/usr/bin/env php
 <?php
 	// Standalone CalDav2ics (e.g. for cron job...)
 	// stores Logfile and Calendar File in same Directory as script
@@ -6,29 +6,48 @@
 	// as stated below, $CalendarsFile is a json file, but renamed for security reasons, as it contains sensible login data (userames/passwords)
 	// proposal is caldav2ics.yaml, as yaml files are usually not served by apache, even if their name/address ist known. but e.g. config.php will also do.
 	// the reason I did not use yaml format here is, that most hosting environments do not include php-yaml, but php-json.
-	
-	// Config goes here:
+
+	//	Config goes here:
 	$verbose = true;
 	$LogEnabled = false;
 	$LogFile = pathinfo(__FILE__, PATHINFO_DIRNAME)."/logfile.txt";
 	$CalendarsFile = pathinfo(__FILE__, PATHINFO_DIRNAME)."/caldav2ics.yaml";	// config file name, json format with fake extension .yaml for security reasons !
-	// end Config
+	//	feel free to use your own $CalendarsFile PATH - just be sure it is correct :-)
+	//	end Config
 	
 	if ( file_exists($CalendarsFile) ) {
 		$jsondata = file_get_contents($CalendarsFile);
 		$Config = (array) json_decode($jsondata);
+		var_dump($Config);
+		exit;
+	}	else	{	
+		die("Calendars File not found, abort!");
+		// here you can still use the old, hardcoded parameter definition, this must, however, be in array notation, like follows (just comment out the 'die..' in the line above):
+		$Config = array (
+			"calendars" => array (
+				array (
+					"Name"=>"TestCalendar",
+					"Url"=>"https://yourcaldavserver.net/remote.php/dav/calendars/myuser/pubcal",
+					"User"=>"myuser",
+					"Pass"=>"my#secret!Password",
+				),
+			)
+  		);
 	}
-	
+
 	foreach ($Config as $entry) {
 		if ($verbose)	var_dump($entry);
 		foreach ($entry as $calendars) {
 			//	var_dump($cal);	//[0][0][0]);
 			foreach ($calendars as $calendar) {
 				//	var_dump($calendar);
-				$name = $calendar[0]->name;
-				$calendar_url = $calendar[1]->url;
-				$calendar_user = $calendar[2]->user;
-				$calendar_password = $calendar[3]->password;
+				$cal = (array) $calendars;
+				$name = $cal["Name"];
+				$calendar_url = $cal['Url'];
+				$calendar_user = $cal['User'];
+				$calendar_password = $cal['Pass'];
+				
+				
 				$ICalFile = pathinfo(__FILE__, PATHINFO_DIRNAME)."/".$name.".ics";	// ical file name
 				if ($verbose) {
 					echo "\n";
@@ -65,7 +84,7 @@
 					}
 					return;
 				}
-	
+
 				if ($LogEnabled)	{
 					print_r($calendar_url);
 					fwrite($loghandle, $calendar_url."\n");
@@ -81,7 +100,7 @@
 					$last_update = 0;
 				}
 				if ($last_update + $fmdelay < time()) {	
-	
+
 					// Get events
 					$headers = array(
 						'Content-Type: application/xml; charset=utf-8',
@@ -93,22 +112,22 @@
 					// Prepare request body, MANDATORY !
 					$doc  = new DOMDocument('1.0', 'utf-8');
 					$doc->formatOutput = true;
-	
+
 					$query = $doc->createElement('c:calendar-query');
 					$query->setAttributeNS('http://www.w3.org/2000/xmlns/', 'xmlns:c', 'urn:ietf:params:xml:ns:caldav');
 					$query->setAttributeNS('http://www.w3.org/2000/xmlns/', 'xmlns:d', 'DAV:');
-	
+
 					$prop = $doc->createElement('d:prop');
 					$prop->appendChild($doc->createElement('d:getetag'));
 					$prop->appendChild($doc->createElement('c:calendar-data'));
 					$query->appendChild($prop);
-	
+
 					$prop = $doc->createElement('c:filter');
 					$filter = $doc->createElement('c:comp-filter');
 					$filter->setAttribute('name', 'VCALENDAR');
 					$prop->appendChild($filter);
 					$query->appendChild($prop);
-	
+
 					$doc->appendChild($query);
 					$body = $doc->saveXML();
 					
@@ -117,7 +136,7 @@
 						echo htmlspecialchars($body);
 						fwrite($loghandle, htmlspecialchars($body));
 					}
-	
+
 					// Prepare cURL request
 					$ch = curl_init();
 					curl_setopt($ch, CURLOPT_URL, $calendar_url);
@@ -130,7 +149,7 @@
 					curl_setopt($ch, CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
 					curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'REPORT');
 					curl_setopt($ch, CURLOPT_POSTFIELDS, $body);
-	
+
 					$response = curl_exec($ch);
 					if (curl_error($ch)) {
 						if ($LogEnabled) { 
@@ -141,17 +160,17 @@
 						return;
 					}
 					curl_close($ch);
-	
+
 					// Debugging purpose
 					if ($LogEnabled) { 
 						echo htmlspecialchars($response);
 						fwrite($loghandle, htmlspecialchars($response));
 					}
-	
+
 					// Get the useful part of the response
 					/*	skip any xml conversion/parsing
 					*/
-	
+
 					// Parse events
 					$calendar_events = array();
 					$handle = fopen($ICalFile, 'w') or die('Cannot open file:  '.$ICalFile);
