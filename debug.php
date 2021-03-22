@@ -1,3 +1,4 @@
+#!/usr/bin/env php
 <?php
 	// this file is a helper script to be used to debug problems with caldav2ics.php - uses logfiles from that as input
     $logfile = "logfile.log";

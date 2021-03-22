@@ -1,4 +1,12 @@
-{"calendars":
-[{"name":"sample_Calendar"},{"url":"https:\/\/example.com\/remote.php\/dav\/calendars\/user\/public"},{"user":"myself"},{"password":"mypassword"}],
-[{"name":"another_Calendar"},{"url":"https:\/\/example.net\/remote.php\/dav\/calendars\/user1\/public"},{"user":"Imyself"},{"password":"newpassword"}],
-}
+calendars:
+    -
+        Name: TestCalendar
+        Url: 'https://yourcaldavserver.net/remote.php/dav/calendars/myuser/pubcal'
+        User: myuser
+        Pass: 'my#secret!Password'
+    -
+        Name: Test2
+        Url: 'https://davserver.net/remote.php/dav/calendars/myuser/pubcal'
+        User: myuserHH
+        Pass: 'my#Password'
+                

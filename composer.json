@@ -1,0 +1,26 @@
+{
+    "name": "wernerjoss/caldav2ics",
+    "type": "php-app",
+    "description": "create ical calendar file(s) from caldav calendar(s)",
+    "keywords": ["CalDav", "ICS"],
+    "homepage": "https://github.com/wernerjoss/caldav2ics",
+    "license": "MIT",
+    "vendor": "wernerjoss",
+    "authors": [{
+        "name": "Werner Joss",
+        "email": "wernerjoss@users.noreply.github.com",
+        "homepage": "https://hoernerfranzracing.de",
+        "role": "Developer"
+    }],
+    "require": {
+        "php": ">=7.1.3",
+        "ext-json": "*",
+        "symfony/yaml": "^4.4",
+        "symfony/dom-crawler": "^4.4"
+    },
+    "config": {
+        "platform": {
+            "php": "7.1.3"
+        }
+    }
+}
