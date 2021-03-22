@@ -31,7 +31,7 @@
 	if ($argc > 1)
 		$CalendarsFile = $argv[1];
 	if ($argc > 2)
-		$ICSpath = $argv[1];
+		$ICSpath = $argv[2];
 	if ( file_exists($CalendarsFile) ) {
 		$jsondata = file_get_contents($CalendarsFile);
 		$Config = (array) json_decode($jsondata);
