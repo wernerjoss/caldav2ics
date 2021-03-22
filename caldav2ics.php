@@ -13,26 +13,32 @@
 	$LogFile = pathinfo(__FILE__, PATHINFO_DIRNAME)."/logfile.txt";
 	$CalendarsFile = pathinfo(__FILE__, PATHINFO_DIRNAME)."/caldav2ics.yaml";	// config file name, json format with fake extension .yaml for security reasons !
 	//	feel free to use your own $CalendarsFile PATH - just be sure it is correct :-)
+	//	alternatively, you can provide the Calendars File Name via commandline, Argument 1, see code below. Same goes for $ICSpath (optional Argument 2)
+	$ICSpath = pathinfo(__FILE__, PATHINFO_DIRNAME);	// default
+	// here you can still use the old, hardcoded parameter definition, this must, however, be in array notation, like follows (just comment out the 'die..' in the line above):
+	$Config = array (
+		"calendars" => array (
+			array (
+				"Name"=>"TestCalendar",
+				"Url"=>"https://yourcaldavserver.net/remote.php/dav/calendars/myuser/pubcal",
+				"User"=>"myuser",
+				"Pass"=>"my#secret!Password",
+			),
+		)
+	  );
 	//	end Config
 	
+	if ($argc > 1)
+		$CalendarsFile = $argv[1];
+	if ($argc > 2)
+		$ICSpath = $argv[1];
 	if ( file_exists($CalendarsFile) ) {
 		$jsondata = file_get_contents($CalendarsFile);
 		$Config = (array) json_decode($jsondata);
-		var_dump($Config);
-		exit;
+		if ($verbose)	var_dump($Config);
+		//	exit;
 	}	else	{	
-		die("Calendars File not found, abort!");
-		// here you can still use the old, hardcoded parameter definition, this must, however, be in array notation, like follows (just comment out the 'die..' in the line above):
-		$Config = array (
-			"calendars" => array (
-				array (
-					"Name"=>"TestCalendar",
-					"Url"=>"https://yourcaldavserver.net/remote.php/dav/calendars/myuser/pubcal",
-					"User"=>"myuser",
-					"Pass"=>"my#secret!Password",
-				),
-			)
-  		);
+		echo("Calendars File not found, using default Config data !");
 	}
 
 	foreach ($Config as $entry) {
@@ -48,7 +54,7 @@
 				$calendar_password = $cal['Pass'];
 				
 				
-				$ICalFile = pathinfo(__FILE__, PATHINFO_DIRNAME)."/".$name.".ics";	// ical file name
+				$ICalFile = $ICSpath."/".$name.".ics";	// ical file name
 				if ($verbose) {
 					echo "\n";
 					echo "$name\n";
