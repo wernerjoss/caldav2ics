@@ -19,7 +19,7 @@ As of 03/2021 (v 1.1.0), caldav2ics.php reads the Configuration (URL's, username
 This makes it easy to fetch/process multiple remote Calendars in ONE run.  
 Note that this is now real yaml Format, not 'fake', but internally json as before (up to v 1.0.x). The reason for this is security: yaml Files are usually not served by apache, even if anyone knows the exact address/location.
 The reason for using json Format before is, that most hosting environments have php-json enabled, but not php-yaml.  
-Now, the new Version comes with symfony/yaml included, this way it can also run on servers that do not have php-yaml installed.
+Now, the new Version (1.1.1) comes with symfony/yaml included, this way it can also run on servers that do not have php-yaml installed.
 For anyone who does not need multiple calendars functionality and does not like editing json config files, there is still the branch 'simple' kept here for convenience.  
 Or you can just hardcode the Parameters directly in the source, as before, but in correct php Array notation.
 
