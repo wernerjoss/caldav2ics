@@ -152,6 +152,7 @@
 			}
 
 			// Prepare cURL request
+			// TODO: set Timeout, see https://thisinterestsme.com/php-setting-curl-timeout/
 			$ch = curl_init();
 			curl_setopt($ch, CURLOPT_URL, $calendar_url);
 			curl_setopt($ch, CURLOPT_USERPWD, $calendar_user . ':' . $calendar_password);
@@ -216,28 +217,30 @@
 			}
 			// parse $response, do NOT write VCALENDAR header for each one, just the event data
 			foreach ($lines as $line) {
-				$line = trim($line);
-				if (strstr($line,'BEGIN:VCALENDAR'))	{	// first occurrence might not be at line start
-					$skip = true;
-				}
-				if (startswith($line,'PRODID:'))	{
-					$skip = true;
-				}
-				if (strstr($line,'VERSION:'))	{
-					$skip = true;	// VERSION can appear in different places
-				}
-				if (startswith($line,'CALSCALE:'))	{
-					$skip = true;
-				}
-				if (startswith($line,'BEGIN:VEVENT'))	{
-					$skip = false;
-					//fwrite($handle, "\r\n");	// improves readability, but triggers warning in validator :)
-				}
-				if (startswith($line,'END:VCALENDAR'))	{
-					$skip = true;
-				}
-				if ( !$skip )	{
-					fwrite($handle, $line."\r\n");
+				$line = trim($line,"\n\r\t\v\x00");	// mod. 17.07.23 WJ, see https://wordpress.org/support/topic/converted-openxchange-calendar-subscibe-to-google-didnt-work/
+				if (stren($line) > 0) {	// mod. 17.07.23 WJ
+					if (strstr($line,'BEGIN:VCALENDAR'))	{	// first occurrence might not be at line start
+						$skip = true;
+					}
+					if (startswith($line,'PRODID:'))	{
+						$skip = true;
+					}
+					if (strstr($line,'VERSION:'))	{
+						$skip = true;	// VERSION can appear in different places
+					}
+					if (startswith($line,'CALSCALE:'))	{
+						$skip = true;
+					}
+					if (startswith($line,'BEGIN:VEVENT'))	{
+						$skip = false;
+						//fwrite($handle, "\r\n");	// improves readability, but triggers warning in validator :)
+					}
+					if (startswith($line,'END:VCALENDAR'))	{
+						$skip = true;
+					}
+					if ( !$skip )	{
+						fwrite($handle, $line."\r\n");
+					}
 				}
 			}
 			fwrite($handle, 'END:VCALENDAR'."\r\n");
