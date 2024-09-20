@@ -1,9 +1,13 @@
 #!/usr/bin/env php
 <?php
 	// this file is a helper script to be used to debug problems with caldav2ics.php - uses logfiles from that as input
-    $logfile = "logfile.log";
+    $logfile = "logfile.txt";
     $ICalFile = "calendar.ics";
-    if ($handle = fopen($logfile, "r"))   {
+	
+	// commonly used ics Properties, see https://en.wikipedia.org/wiki/ICalendar
+	$Properties = ["DTSTAMP","URL","URL;VALUE=URI","CREATED","UID","LAST-MODIFIED","SUMMARY","LOCATION","DTSTAMP","DTSTART","DTSTART;VALUE=DATE","DTEND","DTEND;VALUE=DATE","TRANSP","DESCRIPTION","UID","CLASS","STATUS","SEQUENCE","RRULE","RDATE","EXDATE","BEGIN","END","TRIGGER","ACTION","CATEGORIES","GEO","ATTENDEE","ROLE","EMAIL","CN"];
+	
+	if ($handle = fopen($logfile, "r"))   {
         // Get the useful part of the response
         $response = file_get_contents($logfile);
         echo $response;
@@ -62,10 +66,41 @@
 			if (startswith($line,'END:VCALENDAR'))	{
 				$skip = true;
 			}
-			if ($skip == false)	{
-				fwrite($handle, $line."\r\n");
+			// more validations 20.09.24
+			//if (!str_contains($line, ':')) {	// skip all lines that do not contain ':' (Keyword)
+			if (!strpos($line, ':')) {	// TODO: better join lines to previous one :-)
+				$skip = true;
+			}	else {
+				$parts = explode(":",$line);
+				$keyword = $parts[0];
+				if (in_array($keyword, $Properties))  {
+					$skip = false;
+				}	else	{
+					if (startswith($line,'ORGANIZER;CN=')) {
+						$skip = false;
+					}	else	{
+						$skip = true;
+					}
+				}
 			}
-		}
+			if ( !$skip )	{
+				if ((startswith($line,'URL:')) || (startswith($line,'URL;VALUE=URI:'))) {	// check if 'URL:..' Line contains valid URL
+					$url = str_replace("URL:", "", $line);
+					$url = str_replace("URL;VALUE=URI:", "", $url);
+					$url = trim($url);
+					if (filter_var($url, FILTER_VALIDATE_URL) === FALSE) {
+						if ($LogEnabled)	{
+							fwrite($loghandle, $url.' is Not a valid URL'."\r\n");
+							fwrite($loghandle, "Line: ".$line."\r\n");
+						}
+					}	else {
+						fwrite($handle, $line."\r\n");
+					}
+				}	else {
+					fwrite($handle, $line."\r\n");
+				}
+			}
+		}	
 		fwrite($handle, 'END:VCALENDAR'."\r\n");
 		fclose($handle);
 	}

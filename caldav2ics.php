@@ -12,9 +12,10 @@
 
 	//	Config goes here:
 	$verbose = true;
-	$LogEnabled = false;
+	$LogEnabled = true;
+	$RequestTimeout = '20';	// default Timeout for curl Request
 	$LogFile = pathinfo(__FILE__, PATHINFO_DIRNAME)."/logfile.txt";
-	$CalendarsFile = pathinfo(__FILE__, PATHINFO_DIRNAME)."/caldav2ics.yaml";	// config file name, json format with fake extension .yaml for security reasons !
+	$CalendarsFile = pathinfo(__FILE__, PATHINFO_DIRNAME)."/caldav2ics.yaml";	// config file name, yaml Format for security reasons !
 	//	feel free to use your own $CalendarsFile PATH - just be sure it is correct :-)
 	//	alternatively, you can provide the Calendars File Name via commandline, Argument 1, see code below. Same goes for $ICSpath (optional Argument 2)
 	$ICSpath = pathinfo(__FILE__, PATHINFO_DIRNAME);	// default
@@ -53,7 +54,10 @@
 	}	else	{	
 		echo("Calendars File not found, using default Config data !");
 	}
-
+	
+	// commonly used ics Properties, see https://en.wikipedia.org/wiki/ICalendar
+	$Properties = ["DTSTAMP","URL","URL;VALUE=URI","CREATED","UID","LAST-MODIFIED","SUMMARY","LOCATION","DTSTAMP","DTSTART","DTSTART;VALUE=DATE","DTEND","DTEND;VALUE=DATE","TRANSP","DESCRIPTION","UID","CLASS","STATUS","SEQUENCE","RRULE","RDATE","EXDATE","BEGIN","END","TRIGGER","ACTION","CATEGORIES","GEO","ATTENDEE","ROLE","EMAIL","CN"];
+	
 	foreach ($calendars as $calendar) {
 		if ($verbose)	var_dump($calendar);
 		$cal = $calendar;	//	(array) $calendars;
@@ -152,11 +156,12 @@
 			}
 
 			// Prepare cURL request
-			// TODO: set Timeout, see https://thisinterestsme.com/php-setting-curl-timeout/
+			
 			$ch = curl_init();
 			curl_setopt($ch, CURLOPT_URL, $calendar_url);
 			curl_setopt($ch, CURLOPT_USERPWD, $calendar_user . ':' . $calendar_password);
 			curl_setopt($ch, CURLOPT_VERBOSE, 1);
+			curl_setopt($ch, CURLOPT_TIMEOUT, $RequestTimeout);	// DONE: set Timeout, see https://thisinterestsme.com/php-setting-curl-timeout/
 			curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
 			curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
 			curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
@@ -218,7 +223,7 @@
 			// parse $response, do NOT write VCALENDAR header for each one, just the event data
 			foreach ($lines as $line) {
 				$line = trim($line,"\n\r\t\v\x00");	// mod. 17.07.23 WJ, see https://wordpress.org/support/topic/converted-openxchange-calendar-subscibe-to-google-didnt-work/
-				if (stren($line) > 0) {	// mod. 17.07.23 WJ
+				if (strlen($line) > 0) {	// mod. 17.07.23 WJ
 					if (strstr($line,'BEGIN:VCALENDAR'))	{	// first occurrence might not be at line start
 						$skip = true;
 					}
@@ -238,8 +243,39 @@
 					if (startswith($line,'END:VCALENDAR'))	{
 						$skip = true;
 					}
+					// more validations 20.09.24
+					//if (!str_contains($line, ':')) {	// skip all lines that do not contain ':' (Keyword)
+					if (!strpos($line, ':')) {	// TODO: better join lines to previous one :-)
+						$skip = true;
+					}	else {
+						$parts = explode(":",$line);
+						$keyword = $parts[0];
+						if (in_array($keyword, $Properties))  {
+							$skip = false;
+						}	else	{
+							if (startswith($line,'ORGANIZER;CN=')) {
+								$skip = false;
+							}	else	{
+								$skip = true;
+							}
+						}
+					}
 					if ( !$skip )	{
-						fwrite($handle, $line."\r\n");
+						if ((startswith($line,'URL:')) || (startswith($line,'URL;VALUE=URI:'))) {	// check if 'URL:..' Line contains valid URL
+							$url = str_replace("URL:", "", $line);
+							$url = str_replace("URL;VALUE=URI:", "", $url);
+							$url = trim($url);
+							if (filter_var($url, FILTER_VALIDATE_URL) === FALSE) {
+								if ($LogEnabled)	{
+									fwrite($loghandle, $url.' is Not a valid URL'."\r\n");
+									fwrite($loghandle, "Line: ".$line."\r\n");
+								}
+							}	else {
+								fwrite($handle, $line."\r\n");
+							}
+						}	else {
+							fwrite($handle, $line."\r\n");
+						}
 					}
 				}
 			}
