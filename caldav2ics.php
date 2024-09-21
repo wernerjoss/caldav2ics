@@ -252,6 +252,9 @@
 						$keyword = $parts[0];
 						if (in_array($keyword, $Properties))  {
 							$skip = false;
+							if (startswith($line,'END:VCALENDAR'))	{
+								$skip = true;
+							}
 						}	else	{
 							if (startswith($line,'ORGANIZER;CN=')) {
 								$skip = false;
