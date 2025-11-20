@@ -1,3 +1,9 @@
+# v1.2.1
+##  20/11/2025
+
+1. [](#bugfix)
+    * fix skip DTSTART/DTEND in ics file on Lines starting with DTSTART;TZID=...:
+
 # v1.2.0
 ##  20/09/2024
 

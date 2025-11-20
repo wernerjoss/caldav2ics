@@ -56,7 +56,8 @@
 	}
 	
 	// commonly used ics Properties, see https://en.wikipedia.org/wiki/ICalendar
-	$Properties = ["DTSTAMP","URL","URL;VALUE=URI","CREATED","UID","LAST-MODIFIED","SUMMARY","LOCATION","DTSTAMP","DTSTART","DTSTART;VALUE=DATE","DTEND","DTEND;VALUE=DATE","TRANSP","DESCRIPTION","UID","CLASS","STATUS","SEQUENCE","RRULE","RDATE","EXDATE","BEGIN","END","TRIGGER","ACTION","CATEGORIES","GEO","ATTENDEE","ROLE","EMAIL","CN"];
+	// $Properties = ["DTSTAMP","URL","URL;VALUE=URI","CREATED","UID","LAST-MODIFIED","SUMMARY","LOCATION","DTSTAMP","DTSTART","DTSTART;VALUE=DATE","DTEND","DTEND;VALUE=DATE","TRANSP","DESCRIPTION","UID","CLASS","STATUS","SEQUENCE","RRULE","RDATE","EXDATE","BEGIN","END","TRIGGER","ACTION","CATEGORIES","GEO","ATTENDEE","ROLE","EMAIL","CN"];
+	$Properties = ["DTSTAMP","URL","URL;VALUE=URI","CREATED","UID","LAST-MODIFIED","SUMMARY","LOCATION","DTSTAMP","DTSTART","DTEND","TRANSP","DESCRIPTION","UID","CLASS","STATUS","SEQUENCE","RRULE","RDATE","EXDATE","BEGIN","END","TRIGGER","ACTION","CATEGORIES","GEO","ATTENDEE","ROLE","EMAIL","CN"];
 	
 	foreach ($calendars as $calendar) {
 		if ($verbose)	var_dump($calendar);
@@ -249,6 +250,21 @@
 						$skip = true;
 					}	else {
 						$parts = explode(":",$line);
+						$keyword = $parts[0];
+						if (in_array($keyword, $Properties))  {
+							$skip = false;
+							if (startswith($line,'END:VCALENDAR'))	{
+								$skip = true;
+							}
+						}	else	{
+							if (startswith($line,'ORGANIZER;CN=')) {
+								$skip = false;
+							}	else	{
+								$skip = true;
+							}
+						}
+						//	neu 20.11.25 - fix skip DTSTART/DTEND on Lines starting with DTSTART;TZID=...:
+						$parts = explode(";",$keyword);
 						$keyword = $parts[0];
 						if (in_array($keyword, $Properties))  {
 							$skip = false;
